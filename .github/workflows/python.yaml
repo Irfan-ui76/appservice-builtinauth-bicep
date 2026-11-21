@@ -1,0 +1,31 @@
+name: Python check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test_package:
+    name: Test ${{ matrix.os }} Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]
+        python_version: ["3.11"]
+    steps:
+        - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
+        - name: Setup python
+          uses: actions/setup-python@e9aba2c848f5ebd159c070c61ea2c4e2b122355e # v2.3.4
+          with:
+            python-version: ${{ matrix.python_version }}
+            architecture: x64
+        - name: Install dependencies
+          run: |
+            python3 -m pip install --upgrade pip
+            python3 -m pip install -r requirements.txt
+        - name: Run server
+          run: |
+            timeout 15 python3 -m flask run --port 50505  || exit $(( $? == 124 ? 0 : $? ))
